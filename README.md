@@ -19,7 +19,9 @@ An ideal software organization is one in which:
 
 The best software gets delivered when engineers are encouraged, empowered, and supported in becoming their best, most powerful selves. When that environment is present, the drive to create, the drive to deliver excellence springs forth from within. When a team has this, you can tell immediately. 
 
-The leadership team can cultivate this. There is the classic adage "reward the behavior that you want to see more of". And that's very true. If someone goes above and beyond, showing that hustle to resolve a production issue, mentor another team member, or deliver a particularly awesome piece of code - timely, specific recognition is crucial. It's more than that though. It's about taking the time, as a manager and/or project lead, to maintain a sense of where your team members are capability-wise, and then tee up project pieces that are going to be right on that edge, where it's going to push them to grow, but you are pretty sure they will succeed, and then they get that rush, that joy at delivering something they have every right to be proud of. Even if you are no longer officially doing code reviews for your IC direct reports, take the time to scope on a few of them every so often. If you manage data scientists, have them present their latest result to the team, and make sure you attend. Few things are as encouraging to a team member when their manager talks about something they are currently working on, and compares it from memory to something they did six months ago, and points out how they've grown. It reinforces that they are a real person and that the manager cares about their growth. 
+The leadership team can cultivate this. There is the classic adage "reward the behavior that you want to see more of". And that's very true. If someone goes above and beyond, showing that hustle to resolve a production issue, mentor another team member, or deliver a particularly awesome piece of code - timely, specific recognition is crucial. It's more than that though. It's about taking the time, as a manager and/or project lead, to maintain a sense of where your team members are capability-wise, and then tee up project pieces that are going to be right on that edge, where it's going to push them to grow, but you are pretty sure they will succeed, and then they get that rush, that joy at delivering something they have every right to be proud of. 
+
+Even if you are no longer officially doing code reviews for your IC direct reports, take the time to scope on a few of them every so often. If you manage data scientists, have them present their latest result to the team, and make sure you attend. Few things are as encouraging to a team member when their manager talks about something they are currently working on, and compares it from memory to something they did six months ago, and points out how they've grown. It reinforces that they are a real person and that the manager cares about their growth. 
 
 When managers give positive feedback, teams will emulate this. When managers solicit opinions from ICs, and listen, team members will feel like their voice matters - and everyone likes to feel included. 
 
@@ -188,6 +190,7 @@ Like any set of tools - use with caution and reason.
 ## DRYness
 
 1. Code
+
     Always
 
 2. Data
