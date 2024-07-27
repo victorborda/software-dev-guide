@@ -66,6 +66,8 @@ Once that foundation is set, then you can focus on the following...
 
     Another alternative that can be quite useful, especially when you have multiple data stores throughout the system, is better use of unique identifier strings. Guaranteed unique uuid strings can be a wonderful thing. Sure, if all the data is just in one relational database, then you will likely be adding some overhead and you're going to have to think more about things like how handle deletions (since you can't just rely on an ACID cascade). But the tradeoff is very often worth it, especially in any kind of event-driven system that has to handle/process/store lots of event data, since in such situations you likely need and want to not just jam all of that in one SQL database.
 
+    Use the Law of Demeter to guide your SRP architecture.
+
 Those are my top three guidelines for creating good code. 
 
 ### The Code Review Process
@@ -90,9 +92,12 @@ If your engineering organization is really cooking (everyone is in a good flow s
 ### The Pre-Code Review Process
 
 1. Naming Conventions
-    - Most languages have syntax conventions for names (camel case, underscores etc), and this gets particulalry enforced if you are using an ORM layer to assist with any sort of autogeneration, but the semantic nature of how variables and functions/methods get named can vary quite a lot by programmer. It's easy to enforce syntax guidelines with a linter, but semantics are a bit trickier to enforce automatically. It is generally easy to spot in code reviews, however, as long as guidelines have been made clear. Simply having clear guidelines is the most important step, regardless of the specifics.
+    
+    Most languages have syntax conventions for names (camel case, underscores etc), and this gets particulalry enforced if you are using an ORM layer to assist with any sort of autogeneration, but the semantic nature of how variables and functions/methods get named can vary quite a lot by programmer. It's easy to enforce syntax guidelines with a linter, but semantics are a bit trickier to enforce automatically. It is generally easy to spot in code reviews, however, as long as guidelines have been made clear. Simply having clear guidelines is the most important step, regardless of the specifics.
+
 2. Extraction of scripts and setup into easily repeatable single line commands
-    - There is a famous xkcd comic that tried to make the point that spending too much time on automating a task that is not too onerous or done very often is not worth it. While there is some truth to that viewpoint, that comic was probably grossly responsible for many folks thinking about it the wrong way. That’s because it did not include factors such as: 
+    
+    There is a famous xkcd comic that tried to make the point that spending too much time on automating a task that is not too onerous or done very often is not worth it. While there is some truth to that viewpoint, that comic was probably grossly responsible for many folks thinking about it the wrong way. That’s because it did not include factors such as: 
         - How many other people in the org will need to perform this operation? 
         - What is the time cost for folks new to the operation vs the person who has done it many times?
         - What is the cleanup cost if someone gets it wrong?
@@ -100,13 +105,18 @@ If your engineering organization is really cooking (everyone is in a good flow s
         - Does it need to be part of a CI/CD pipeline?
         - If there is a major production fire, will this script be needed to diagnose and/or fix?
     These are all very important to consider. So the problem with the xxkcd comic is that is focused on "you" instead of "team", and it didn't take into account the fact that one's ability to properly estimate the scenarios for its usage is necessarily limited. Therefore, having the original engineer on a piece of setup/code/deployment/etc create one helper script for others to use can save serious amounts of time and headache for other team members down the line. 
-    - One good rule of thumb here is, if you have shell commands that require more than one line, or are longer than 80 characters, put it in a .sh or .py file. Simple, easy.
-    - If you find yourself doing the same configuration action twice, in particular if you are doing so because you got something wrong the first time, put it in a script as you go. Without it, others will likely make the exact same mistake you just made.
+
+    One good rule of thumb here is, if you have shell commands that require more than one line, or are longer than 80 characters, put it in a .sh or .py file. Simple, easy.
+    
+    If you find yourself doing the same configuration action twice, in particular if you are doing so because you got something wrong the first time, put it in a script as you go. Without it, others will likely make the exact same mistake you just made.
+
 3. Lint prior to code checkin
-    - If code reviews are just enforcing basic code style then they are a waste of everyone’s time. Linters are better at this. There’s an 80/20 balance in the linting rules, however, and in that 20, there tends to be more and more cause for reasonable situational variance. You don’t want the linter making noise on those because then people start ignoring it or hating it. Linters work best when they are configured to act as a friendly pair programmer, not a squawking bird. 
-    - I personally use flake8, black, djLint, isort, and pre-commit
+    If code reviews are just enforcing basic code style then they are a waste of everyone’s time. Linters are better at this. There’s an 80/20 balance in the linting rules, however, and in that 20, there tends to be more and more cause for reasonable situational variance. You don’t want the linter making noise on those because then people start ignoring it or hating it. Linters work best when they are configured to act as a friendly pair programmer, not a squawking bird. 
+    
+    I personally use flake8, black, djLint, isort, and pre-commit together.
+
 4. Git hooks to enforce that only great code makes it to the pull request phase
-    - Git hooks that run linters are wonderful things. 
+    Git hooks that run linters are wonderful things. 
 
 ## AI Tools
 
@@ -124,12 +134,15 @@ Like any set of tools - use with caution and reason.
 ## Test Coverage
 
 1. Strike a balance
+
     I’m a big fan of test coverage. I wrote the E2E test system at my last company, which was interestingly complex because it actually issued and processed real phone calls (which was at the core of our processing chain). So you know, I’m all in. That said, when test coverage gets excessively complex, either in the setup or in the number of combinations being tested, it's usually an indicator of other problems or inefficiencies in the code base (almost always, violations of the Code Principles & Patterns list above). The best approach here is to empower your devs to refactor when they see this - give them space on a project to create refactor tickets when they see the test hairball start to grow. The argument against such refactoring will almost always be "well, the business logic itself is complicated". That is rarely a good argument. Logic is logical and the different aspects of it can almost always be separated out. 
   
 2. Unit test coverage
+
     Simple, repeatable. Encapsulate related business logic into its own class with clear tests. Try to keep the classes at no more than 200 lines of code. This keeps the test file to a size that a developer can reasonably reason about. If a unit test file is more than 400 lines of code, something has gone wrong in the class structure architecture. Of particular note here - keep your business logic out of your ORM database object classes! It is so tempting to mix them together. Don't do it - keep that ORM class focused on the object lifecycle - enforcing validations, etc. Keep the business logic elsewhere.
 
 3. Clear strategy for test data
+
     Factories can be great, but they can also be dangerous. A common pitfall: factory generated instances that are actually invalid but the engineer hasn’t tried saving the instance to the database or calling is_vald? or similar on it. So the test passed, but the instance fed to the test will never appear in actual use. 
     
     Seed data can be great, but it can also be too heavyweight. Developers need to be enabled to roll with good cadence. In a big repo, waiting for long-running sample data generation scripts is a drag, and the larger the team gets, big sample data is a recipe for merge conflicts. 
@@ -137,9 +150,11 @@ Like any set of tools - use with caution and reason.
     A middle ground between factories and seed data is to use both, but at different times in the lifecycle of a given part of the codebase. If some set of classes, say for a given service, are mature and not likely to change much, create a tech debt ticket to transition factory test setup data into seed data. If an area is still under hot development - stick to factories.
 
 4. Pay close attention to your mocks and stubs
-    -We all love stubbing and mocking in our tests, right? Well, ok, maybe it’s a mixed bag. Certainly it can feel good, and if there are good pinch points where we can do it easily, that’s a good sign that our SRP is going well. That said, you can also fool yourself with it. One example of this is in a system like Rails or Django where the test framework is mocking certain things like the specifics of the request as it comes in, including http verb, routing logic, environment inclusion, and any intermediate processing that may be occurring in the processing stack prior to the request hitting the processing code. That’s where it’s good to have at least a few E2E tests that, yes, are likely brittle, but allow you to safeguard that nothing has gone unduly wrong across contract boundaries.
+
+    We all love stubbing and mocking in our tests, right? Well, ok, maybe it’s a mixed bag. Certainly it can feel good, and if there are good pinch points where we can do it easily, that’s a good sign that our SRP is going well. That said, you can also fool yourself with it. One example of this is in a system like Rails or Django where the test framework is mocking certain things like the specifics of the request as it comes in, including http verb, routing logic, environment inclusion, and any intermediate processing that may be occurring in the processing stack prior to the request hitting the processing code. That’s where it’s good to have at least a few E2E tests that, yes, are likely brittle, but allow you to safeguard that nothing has gone unduly wrong across contract boundaries.
 
 5. TDD - when appropriate
+
     This may be controversial to some! TDD is great, to a point. When the JIRA ticket is well-defined, with at least decent specifications of the go-right case, then TDD can be fantastic because writing the test statements first identifies anywhere the expected behavior is not clear. So the programmer can go ask the PM - what do you want in these corner cases? But, particularly when it's an exploratory feature, and especially if it's for front end pieces that may change, TDD can be putting the cart ahead of the horse. Sometimes its ok to say, we're not doing TDD, but let's make sure the tests are in before this branch gets merged to main.
 
 ## SQL Database Table Structure & Usage
@@ -158,6 +173,7 @@ Like any set of tools - use with caution and reason.
         - Five, in the example given, these databases are used in totally different ways, will have totally different needs, and things like migration, backup, and restore strategies are going to be very different. Don’t try to fit that all under one roof.
 
 3. Database health check
+
     Use psql and explain to check query health. Have this as a recurring tech debt ticket so that eventually every programmer in the org has spent time doing this. 
 
 ## REST vs GraphQL
@@ -170,13 +186,18 @@ Like any set of tools - use with caution and reason.
         - For GraphQL, roll your own wrapper around the graphQL generator.
 
 ## DRYness
+
 1. Code
-    - Always
+    Always
+
 2. Data
-    - In a normalized SQL database driving a web application: pretty much always.
-    - Sometimes though, depending on the tech and the performance requirements there can be really good performance reasons to de-normalize. A good example of this is using a data lake, like the Delta Lake that comes with DataBricks. It has a particular processing paradigm, which is good for data science type queries, where the idea is to pull large sets of information from a table, perform parallel spark based processing on the results, and then return the final transformed/distilled/calculated values. Due to the way the underlying parquet file structure works, you can only have up to three indexes on a given table, which means that your options for doing relational “style” queries is not very great. Thus, a different in set of techniques comes into play, including lightweight temp tables, the distributed spark processing, and sometimes, having the same data in more than one place. Now, as a matter of sanity, but also practical usage, if data is in more than one place it really needs to be immutable. Which is typically fine - this use case is commonly for “data of record”, ie events that have occurred whose key attributes shall not change. 
+    
+    In a normalized SQL database driving a web application: pretty much always.
+    
+    Sometimes though, depending on the tech and the performance requirements there can be really good performance reasons to de-normalize. A good example of this is using a data lake, like the Delta Lake that comes with DataBricks. It has a particular processing paradigm, which is good for data science type queries, where the idea is to pull large sets of information from a table, perform parallel spark based processing on the results, and then return the final transformed/distilled/calculated values. Due to the way the underlying parquet file structure works, you can only have up to three indexes on a given table, which means that your options for doing relational “style” queries is not very great. Thus, a different in set of techniques comes into play, including lightweight temp tables, the distributed spark processing, and sometimes, having the same data in more than one place. Now, as a matter of sanity, but also practical usage, if data is in more than one place it really needs to be immutable. Which is typically fine - this use case is commonly for “data of record”, ie events that have occurred whose key attributes shall not change. 
 
 ## SRP revisited
+
 1. Repo level
     - Separate the environment setup from any one repository
         - This might seem like a minor one, but conceptually, it sets a tone of SRP that is actually really refreshing, especially if you’ve ever experienced working with (or tried to slice up) a monolith web application. Take a web app framework with an ORM, like Rails or Django. You start with one repo and after you get your initial data base setup and configure the connection info for the ORM, you are going to start generating migrations. Because you create the migrations, and apply the migrations, from this repository, it may seem natural to put all the local database setup information in that repo. What happens though is that it sets a tone that the application owns the database, and scripts and other items, that are also typically environment dependent, start to show up in the web app repo that should really conceptually be none of the web app’s business. When that app gets deployed to AWS for instance, that database is over in RDS land, and really, all the app should know is that (with Django for instance), that the default database connection routes *somewhere*. Now, if you are using more than one database, like, let’s suppose you are also using a PostGis database, it will start to feel over-stuffed quickly, if all the setup, readme, and associated material is all in the web app repo. So, separate it at the start and make life better. 
