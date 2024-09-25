@@ -154,25 +154,6 @@ Like any set of tools - use with caution and reason.
 
     This may be controversial to some! TDD is great, to a point. When the JIRA ticket is well-defined, with at least decent specifications of the go-right case, then TDD can be fantastic because writing the test statements first identifies anywhere the expected behavior is not clear. So the programmer can go ask the PM - what do you want in these corner cases? But, particularly when it's an exploratory feature, and especially if it's for front end pieces that may change, TDD can be putting the cart ahead of the horse. Sometimes its ok to say, we're not doing TDD, but let's make sure the tests are in before this branch gets merged to main.
 
-## SQL Database Table Structure & Usage
-
-1. Clear guidelines
-    
-    If you’re using an ORM layer like with Rails or Django then much of the database syntax standardization is going to come from the migration generation logic these systems provide. However, if you are using something a little different, say PostGIS, or you are using a system like Flyte, then it’s worth it to have some syntax guidelines in place - in those cases there’s a syntax that comes standard and it’s worth making sure your developers know what that is. 
-
-2. Separate RDBMS's
-    
-    If you have a multi-part system it can be tempting to shove everything in the same RDBMS. After all, each RDBMS can support x number of databases within it, and it’s more work to set up a local environment and a cloud provider with multiple RDBMS’s, so - why not just shove everything into one RDBMS? Hold on. This is the difference between theory and actually having to support, and pay for, production systems. 
-        - First, for starters, big RDBMS’s in production are expensive single points of failure. As you try to scale them vertically, the cost metrics get insane. 
-        - Two, taking such an approach limits your options for swapping/upgrading parts of your processing. For example, let’s consider an ML pipeline technology like Flyte. It’s k8s with a Postgres instance designed to take a helm blueprint and perform complex processing. You can set this up on a cloud provider like AWS or GCP, and it works. Now, you can also do that sort of thing with a provider like DataBricks. And DataBricks is a great system with a lot of features that make life very nice for data scientists. If you keep your Flyte pipeline, k8s structure and Postgres database completely separated from your front end app, then if you wanted to move from Flyte to DataBricks, or use both, you could do so very easily. Like, literally, no one working in the web application will even notice. Not so if you end up having to perform database cleanup on a central RDBMS. (okay, so yes you could partition etc to ease this - but still). Another example would be say, using PostGis, which needs to load extensions into the RDBMS. Here the versioning and global impact in the RDBMS really show the wisdom of simply keeping a separate one for PostGis operations. 
-        - Three, keep big background processing tasks from affecting your front end user experience. 
-        - Four, prevent any temptation to cross SRP boundaries. 
-        - Five, in the example given, these databases are used in totally different ways, will have totally different needs, and things like migration, backup, and restore strategies are going to be very different. Don’t try to fit that all under one roof.
-
-3. Database health check
-
-    If you are using PostgreSQL, use psql and explain to check query health. Have this as a recurring tech debt ticket so that eventually every programmer in the org has spent time doing this. 
-
 ## REST vs GraphQL
 
 1. Use REST when it is sufficient. Use GraphQL when it’s necessary.
@@ -186,7 +167,7 @@ Like any set of tools - use with caution and reason.
 
 1. Code
 
-    Always
+    Always. Well, almost always. For production code that *you* have to maintain, especially if the logic is deterministic, meaning there are clear right and wrong outcomes, then DRYness is your best friend. Implement, text, and fix in one place. That said, I saw an exception to this rule recently that I thought made a lot of sense - the Hugging Face diffusers library architects made a conscious decision to not DRY everything up, but rather chose to have some duplicate code to better encourage experimentation and open source contribution. They make a good case for it, and they are willing to take responsibility for the extra work required to maintain the code base. Fair enough - rules of thumb or conventional wisdom don't necessarily apply to all use cases all the time. For instance, see my next point on data DRYness.
 
 2. Data
     
