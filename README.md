@@ -1,4 +1,4 @@
-# Software Engineering Manifesto
+# Software Engineering Guide
 
 I have been lucky enough to use a number of different tech stacks and programming languages, and to be in the presence of some very talented engineers while working at organizations that had a high commitment to engineering excellence. 
 
